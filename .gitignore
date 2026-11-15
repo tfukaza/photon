@@ -1,0 +1,14 @@
+node_modules/
+dist/
+apps/web/dist/
+.photon/
+.photon-preview/
+test-results/
+playwright-report/
+.DS_Store
+coverage/
+
+.photon-simulator/
+
+.photon-sim-hub/
+release/

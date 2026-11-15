@@ -1,0 +1,51 @@
+import { test, expect } from '@playwright/test';
+import { execFileSync } from 'node:child_process';
+
+test('owner setup, onboarding, controls, browser reconnect, and sign out', async ({ page, request }) => {
+  const token = execFileSync(process.execPath, ['dist/apps/server/src/cli.js', 'setup-token'], {
+    env: { ...process.env, PHOTON_DATA_DIR: process.env.PHOTON_E2E_DIR }, encoding: 'utf8',
+  }).trim();
+  const errors: string[] = [];
+  page.on('pageerror', error => errors.push(error.message));
+  await page.goto('/');
+  await expect(page.getByRole('note')).toHaveText('UI preview — no physical devices are connected.');
+  await page.getByLabel('Setup token').fill(token);
+  await page.getByLabel('Password', { exact: true }).fill('browser acceptance password');
+  await page.getByRole('button', { name: 'Create owner account' }).click();
+  await expect(page.getByText('Hub connected', { exact: true })).toBeVisible();
+  await page.getByRole('button', { name: '+ Add a simulated device', exact: true }).click();
+  await page.getByLabel('Matter setup code').fill('123');
+  await page.getByLabel('Country code').fill('US');
+  await page.getByRole('button', { name: 'Simulate connection', exact: true }).click();
+  await expect(page.getByRole('dialog').getByRole('alert')).toContainText('valid Matter manual setup code');
+  await expect(page.getByRole('dialog')).toBeVisible();
+  await page.getByLabel('Matter setup code').fill('34970112332');
+  await page.getByLabel('Country code').fill('US');
+  await page.getByRole('button', { name: 'Simulate connection', exact: true }).click();
+  await expect(page.getByRole('dialog')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Simulated device added' })).toBeVisible();
+  await page.getByRole('button', { name: 'Done', exact: true }).click();
+  await expect(page.getByText('Simulated device — controls do not operate hardware.')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Test light' })).toBeVisible();
+  await page.getByRole('button', { name: 'Turn on Test light', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Turn off Test light', exact: true })).toBeEnabled();
+  const brightness = page.getByRole('slider', { name: /Brightness/ });
+  await brightness.fill('75');
+  await brightness.dispatchEvent('change');
+  await expect(page.locator('output')).toHaveText('75%');
+  await expect(page.getByRole('button', { name: 'Turn off Test light', exact: true })).toBeEnabled();
+  await page.screenshot({ path: 'test-results/dashboard-desktop.png', fullPage: true });
+  await page.reload();
+  await expect(page.getByRole('button', { name: 'Turn off Test light', exact: true })).toBeEnabled();
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(page.getByRole('heading', { name: 'Home controls' })).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  await page.screenshot({ path: 'test-results/dashboard-mobile.png', fullPage: true });
+  await page.getByRole('button', { name: 'Sign out' }).click();
+  await expect(page.getByRole('heading', { name: 'Sign in', exact: true })).toBeVisible();
+  expect((await request.get('/api/v1/devices')).status()).toBe(401);
+  await page.getByLabel('Password', { exact: true }).fill('browser acceptance password');
+  await page.getByRole('button', { name: 'Sign in', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Turn off Test light', exact: true })).toBeEnabled();
+  expect(errors).toEqual([]);
+});

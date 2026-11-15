@@ -1,0 +1,51 @@
+{
+  "name": "photon",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "engines": {
+    "node": ">=24.12.0 <25"
+  },
+  "scripts": {
+    "dev": "tsx watch apps/server/src/main.ts",
+    "dev:web": "vite --config apps/web/vite.config.ts",
+    "build": "npm run build --workspace @photon/web && tsc -p apps/server/tsconfig.build.json",
+    "start": "node dist/apps/server/src/main.js",
+    "cli": "tsx apps/server/src/cli.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:browser": "playwright test",
+    "simulator": "tsx apps/server/src/simulator.ts",
+    "test:protocol": "tsx tests/protocol.ts",
+    "trust:prepare": "tsx scripts/prepare-trust.ts",
+    "release": "bash scripts/release.sh"
+  },
+  "dependencies": {
+    "@fastify/cookie": "^11.0.2",
+    "@fastify/static": "^10.1.8",
+    "@matter/general": "0.18.0",
+    "@matter/main": "0.18.0",
+    "@matter/node": "0.18.0",
+    "@matter/nodejs": "0.18.0",
+    "@matter/nodejs-ble": "0.18.0",
+    "@matter/protocol": "0.18.0",
+    "@matter/types": "0.18.0",
+    "fastify": "^5.6.2",
+    "fs-ext": "^2.1.1",
+    "solid-js": "^1.9.17",
+    "zod": "^4.1.12"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.56.1",
+    "@types/fs-ext": "^2.0.3",
+    "@types/node": "^24.10.0",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3",
+    "vite": "^7.1.12",
+    "vite-plugin-solid": "^2.11.10",
+    "vitest": "^5.0.5"
+  }
+}

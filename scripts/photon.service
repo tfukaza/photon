@@ -1,0 +1,26 @@
+[Unit]
+Description=Photon local smart home prototype
+After=network-online.target bluetooth.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=photon
+Group=photon
+WorkingDirectory=/opt/photon
+EnvironmentFile=/etc/photon/photon.env
+ExecStart=/opt/photon/runtime/bin/node /opt/photon/dist/apps/server/src/main.js
+Restart=on-failure
+RestartSec=3
+TimeoutStopSec=20
+UMask=0077
+NoNewPrivileges=true
+AmbientCapabilities=CAP_NET_RAW CAP_NET_ADMIN
+CapabilityBoundingSet=CAP_NET_RAW CAP_NET_ADMIN
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/photon
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
